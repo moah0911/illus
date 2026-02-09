@@ -78,6 +78,21 @@ Additional it also calculates the Degree of each node, and Communities of nodes,
    ```
 
 ---
+
+## UI (Next.js)
+
+This repo now includes a lightweight Next.js interface in `ui/` to guide users through the
+PDF upload flow and the graph-generation steps. To run it locally:
+
+```bash
+cd ui
+npm install
+npm run dev
+```
+
+Then open http://localhost:3000 to view the interface.
+
+---
 ## Tech Stack
 
 ### Mistral 7B
@@ -85,16 +100,12 @@ Additional it also calculates the Degree of each node, and Communities of nodes,
 
 I am using the [Mistral 7B Openorca](https://huggingface.co/Open-Orca/Mistral-7B-OpenOrca) for extracting concepts out of text chunks. It can follow the system prompt instructions very well. 
 
-### Ollama
-<a href="https://ollama.ai"><img src='https://github.com/jmorganca/ollama/assets/3325447/0d0b44e2-8f4a-4e99-9b52-a5c1c741c8f7 ' height='50'/></a>
+### Groq API
+<a href="https://groq.com"><img src="https://groq.com/favicon.ico" height=50 /></a>
 
-Ollama makes it easy to host any model locally. Mistral 7B OpenOrca version is already available with Ollama to use out of the box. 
-
-To set up this project, you must install Ollama on your local machine. 
-
-Step 1: Install Ollama https://ollama.ai
-
-Step 2: run `ollama run zephyr` in your terminal. This will pull the zephyr model to your local machine and start the Ollama server.
+This project now uses Groq's hosted LLMs for concept extraction and graph relations. Set
+`GROQ_API_KEY` in your environment, and the pipeline will use `llama3-8b-8192` by default.
+You can pass a different model name into the helper functions if needed.
 
 ### Pandas 
 dataframes for graph schema (can use a graphdb at a later stage).

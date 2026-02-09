@@ -16,4 +16,5 @@ dependencies:
   - tqdm>=4.38
   - yachalk>=0.1.5
   - pip:
+    - groq>=0.9.0
     - unstructured>=0.10.30
