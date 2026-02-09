@@ -1,12 +1,35 @@
 import sys
+import os
+import json
+from groq import Groq
 from yachalk import chalk
+
 sys.path.append("..")
 
-import json
-import ollama.client as client
+DEFAULT_MODEL = "llama3-8b-8192"
 
 
-def extractConcepts(prompt: str, metadata={}, model="mistral-openorca:latest"):
+def _get_client() -> Groq:
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not set. Please export your Groq API key.")
+    return Groq(api_key=api_key)
+
+
+def _chat_completion(system_prompt: str, user_prompt: str, model: str | None = None) -> str:
+    client = _get_client()
+    response = client.chat.completions.create(
+        model=model or DEFAULT_MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.2,
+    )
+    return response.choices[0].message.content or ""
+
+
+def extractConcepts(prompt: str, metadata={}, model=DEFAULT_MODEL):
     SYS_PROMPT = (
         "Your task is extract the key concepts (and non personal entities) mentioned in the given context. "
         "Extract only the most important and atomistic concepts, if  needed break the concepts down to the simpler concepts."
@@ -22,7 +45,7 @@ def extractConcepts(prompt: str, metadata={}, model="mistral-openorca:latest"):
         "{ }, \n"
         "]\n"
     )
-    response, _ = client.generate(model_name=model, system=SYS_PROMPT, prompt=prompt)
+    response = _chat_completion(SYS_PROMPT, prompt, model)
     try:
         result = json.loads(response)
         result = [dict(item, **metadata) for item in result]
@@ -32,12 +55,9 @@ def extractConcepts(prompt: str, metadata={}, model="mistral-openorca:latest"):
     return result
 
 
-def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
-    if model == None:
-        model = "mistral-openorca:latest"
-
-    # model_info = client.show(model_name=model)
-    # print( chalk.blue(model_info))
+def graphPrompt(input: str, metadata={}, model=DEFAULT_MODEL):
+    if model is None:
+        model = DEFAULT_MODEL
 
     SYS_PROMPT = (
         "You are a network graph maker who extracts terms and their relations from a given context. "
@@ -63,7 +83,7 @@ def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
     )
 
     USER_PROMPT = f"context: ```{input}``` \n\n output: "
-    response, _ = client.generate(model_name=model, system=SYS_PROMPT, prompt=USER_PROMPT)
+    response = _chat_completion(SYS_PROMPT, USER_PROMPT, model)
     try:
         result = json.loads(response)
         result = [dict(item, **metadata) for item in result]
